@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>El Umbral | Mi OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #050505;
+      --panel: #11100d;
+      --panel-light: #1b1812;
+      --gold: #d8ae4a;
+      --gold-bright: #f7d77b;
+      --muted: #968457;
+      --line: rgba(216, 174, 74, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background: var(--black);
+      color: var(--gold);
+      font-family: "UnifrakturCook", "Old English Text MT", serif;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: radial-gradient(var(--gold) 1px, transparent 1px), radial-gradient(rgba(247, 215, 123, 0.6) 1px, transparent 1px);
+      background-position: 0 0, 42px 76px;
+      background-size: 120px 120px, 170px 170px;
+      content: "";
+      opacity: 0.16;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-light);
+      color: var(--gold-bright);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button:hover {
+      background: #302717;
+      border-color: var(--gold-bright);
+    }
+
+    .login-screen {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(circle at center, #211b0e 0%, var(--black) 58%);
+      text-align: center;
+    }
+
+    .login-box {
+      width: min(100%, 520px);
+      padding: 48px 32px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(10, 9, 7, 0.9);
+      box-shadow: 0 0 50px rgba(216, 174, 74, 0.12);
+      animation: appear 900ms ease-out both;
+    }
+
+    .sigil {
+      margin: 0 0 12px;
+      color: var(--gold-bright);
+      font-size: clamp(3rem, 10vw, 5rem);
+    }
+
+    .login-box h1,
+    .login-box p {
+      margin: 0 0 20px;
+    }
+
+    .login-box p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .enter-button {
+      padding: 12px 28px;
+      color: var(--black);
+      background: var(--gold);
+      border-color: var(--gold-bright);
+    }
+
+    .enter-button:hover {
+      color: var(--black);
+      background: var(--gold-bright);
+    }
+
+    .desktop {
+      display: none;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 35%, #17130a 0%, rgba(5, 5, 5, 0.94) 65%);
+    }
+
+    .desktop.visible {
+      display: block;
+    }
+
+    .desktop-content {
+      height: calc(100vh - 58px);
+      padding: clamp(24px, 6vw, 80px);
+    }
+
+    .welcome h1 {
+      margin: 0 0 8px;
+      color: var(--gold-bright);
+      font-size: clamp(2rem, 5vw, 4rem);
+      text-shadow: 0 0 24px rgba(247, 215, 123, 0.18);
+    }
+
+    .welcome p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold-bright);
+      box-shadow: 0 0 10px var(--gold-bright);
+    }
+
+    .desktop-icons {
+      display: flex;
+      gap: 22px;
+      margin-top: 48px;
+      animation: appear 700ms 250ms ease-out both;
+    }
+
+    .desktop-icon {
+      display: grid;
+      gap: 8px;
+      width: 86px;
+      padding: 10px 4px;
+      border: 0;
+      background: transparent;
+      color: var(--gold);
+      text-align: center;
+    }
+
+    .desktop-icon:hover {
+      background: rgba(216, 174, 74, 0.12);
+    }
+
+    .icon-mark {
+      color: var(--gold-bright);
+      font-family: serif;
+      font-size: 2.1rem;
+    }
+
+    .taskbar {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 58px;
+      padding: 8px 14px;
+      border-top: 1px solid var(--line);
+      background: rgba(8, 7, 5, 0.96);
+    }
+
+    .start-button {
+      padding: 8px 16px;
+      color: var(--black);
+      background: var(--gold);
+    }
+
+    .clock {
+      margin-left: auto;
+      color: var(--gold-bright);
+      font-family: serif;
+      font-size: 0.9rem;
+    }
+
+    .notification-button {
+      padding: 8px 12px;
+      font-family: serif;
+    }
+
+    .notification-panel {
+      position: fixed;
+      right: 14px;
+      bottom: 66px;
+      display: none;
+      width: min(320px, calc(100vw - 28px));
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(17, 16, 13, 0.98);
+      box-shadow: 0 12px 30px #000;
+    }
+
+    .notification-panel.open {
+      display: block;
+      animation: appear 180ms ease-out both;
+    }
+
+    .notification-panel h2 {
+      margin: 0 0 12px;
+      color: var(--gold-bright);
+    }
+
+    .notification {
+      margin: 8px 0 0;
+      padding: 10px;
+      border-left: 2px solid var(--gold);
+      background: rgba(216, 174, 74, 0.08);
+      color: var(--muted);
+      font-family: serif;
+      font-size: 0.9rem;
+    }
+
+    .start-menu {
+      position: fixed;
+      bottom: 66px;
+      left: 14px;
+      display: none;
+      width: min(300px, calc(100vw - 28px));
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(17, 16, 13, 0.98);
+      box-shadow: 0 12px 30px #000;
+    }
+
+    .start-menu.open {
+      display: block;
+      animation: appear 180ms ease-out both;
+    }
+
+    .start-menu h2 {
+      margin: 0 0 14px;
+      color: var(--gold-bright);
+    }
+
+    .menu-item {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .window {
+      position: fixed;
+      top: 18%;
+      left: 50%;
+      display: none;
+      width: min(560px, calc(100vw - 32px));
+      transform: translateX(-50%);
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: 0 15px 50px #000;
+    }
+
+    .window.open {
+      display: block;
+      animation: window-in 220ms ease-out both;
+    }
+
+    .window.minimized {
+      display: none;
+    }
+
+    .window.maximized {
+      top: 12px;
+      right: 12px;
+      bottom: 70px;
+      left: 12px;
+      width: auto;
+      transform: none;
+    }
+
+    .window.maximized .window-body {
+      max-height: calc(100vh - 150px);
+      overflow: auto;
+    }
+
+    .window-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--gold-bright);
+      cursor: grab;
+      user-select: none;
+    }
+
+    .window-header:active {
+      cursor: grabbing;
+    }
+
+    .close-button {
+      width: 30px;
+      height: 30px;
+      color: var(--gold-bright);
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-controls button {
+      width: 30px;
+      height: 30px;
+    }
+
+    .task-window-button {
+      display: none;
+      max-width: 150px;
+      overflow: hidden;
+      padding: 8px 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: serif;
+    }
+
+    .task-window-button.visible {
+      display: inline-block;
+    }
+
+    .date-time {
+      display: grid;
+      gap: 2px;
+      margin-left: auto;
+      color: var(--gold-bright);
+      font-family: serif;
+      text-align: right;
+    }
+
+    .date {
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(5, 5, 5, 0.96);
+      text-align: center;
+    }
+
+    .lock-screen.open {
+      display: grid;
+      animation: appear 220ms ease-out both;
+    }
+
+    .lock-box {
+      width: min(100%, 400px);
+      padding: 34px 26px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 0 40px rgba(216, 174, 74, 0.12);
+    }
+
+    .lock-box h2 {
+      margin: 0 0 8px;
+      color: var(--gold-bright);
+    }
+
+    .lock-box p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-family: serif;
+    }
+
+    .password-input {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: 0;
+      background: var(--black);
+      color: var(--gold-bright);
+      font: 1rem serif;
+      text-align: center;
+    }
+
+    .lock-error {
+      min-height: 20px;
+      margin: 12px 0 0;
+      color: #d8795e;
+      font-family: serif;
+      font-size: 0.9rem;
+    }
+
+    .window-body {
+      padding: 22px;
+      color: var(--muted);
+      font-family: serif;
+      line-height: 1.6;
+    }
+
+    .window-body img {
+      display: block;
+      width: min(100%, 260px);
+      margin: 16px auto 0;
+      border-radius: 12px;
+    }
+
+    .terminal-output {
+      min-height: 120px;
+      color: var(--gold-bright);
+      white-space: pre-line;
+    }
+
+    .terminal-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: 0;
+      background: var(--black);
+      color: var(--gold-bright);
+      font: 1rem monospace;
+    }
+
+    .music-control {
+      padding: 10px 16px;
+      color: var(--black);
+      background: var(--gold);
+    }
+
+    .music-control.playing {
+      background: var(--gold-bright);
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes window-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 10px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .desktop-content {
+        padding: 34px 20px;
+      }
+
+      .desktop-icons {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="login-screen" id="loginScreen">
+    <section class="login-box">
+      <div class="sigil">☽</div>
+      <h1>Bienvenido al Umbral</h1>
+      <p>El sistema te estaba esperando...</p>
+      <button class="enter-button" id="enterButton">Entrar al sistema</button>
+    </section>
+  </main>
+
+  <section class="lock-screen" id="lockScreen" aria-modal="true" aria-labelledby="lockTitle">
+    <div class="lock-box">
+      <div class="sigil">☽</div>
+      <h2 id="lockTitle">El Umbral está cerrado</h2>
+      <p>La clave es <strong>shadow</strong>.</p>
+      <input class="password-input" id="passwordInput" type="password" placeholder="Introduce la clave" aria-label="Clave de desbloqueo">
+      <button class="enter-button" id="unlockButton">Desbloquear</button>
+      <p class="lock-error" id="lockError" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <main class="desktop" id="desktop">
+    <section class="desktop-content">
+      <div class="welcome">
+        <h1>ShadowOS</h1>
+        <p>Los secretos aguardan. ¿Qué puerta abrirás?</p>
+        <div class="system-status"><span class="status-dot"></span>Sistema despierto</div>
+      </div>
+
+      <div class="desktop-icons">
+        <button class="desktop-icon" data-window="filesWindow">
+          <span class="icon-mark">▣</span>
+          <span>Archivos</span>
+        </button>
+        <button class="desktop-icon" data-window="terminalWindow">
+          <span class="icon-mark">⌁</span>
+          <span>Terminal</span>
+        </button>
+        <button class="desktop-icon" data-window="settingsWindow">
+          <span class="icon-mark">⚙</span>
+          <span>Configuración</span>
+        </button>
+        <button class="desktop-icon" data-window="musicWindow">
+          <span class="icon-mark">♫</span>
+          <span>Ambiente</span>
+        </button>
+      </div>
+    </section>
+
+    <aside class="start-menu" id="startMenu">
+      <h2>Menú del Umbral</h2>
+      <button class="menu-item" data-window="filesWindow">▣ Abrir archivos</button>
+      <button class="menu-item" data-window="terminalWindow">⌁ Invocar terminal</button>
+      <button class="menu-item" data-window="settingsWindow">⚙ Configuración</button>
+      <button class="menu-item" data-window="musicWindow">♫ Ritual sonoro</button>
+      <button class="menu-item" id="logoutButton">↪ Cerrar sesión</button>
+    </aside>
+
+    <aside class="notification-panel" id="notificationPanel">
+      <h2>Susurros del sistema</h2>
+      <p class="notification">La puerta norte se ha desbloqueado.</p>
+      <p class="notification">Hay una presencia en los archivos.</p>
+      <p class="notification">ShadowOS está observando.</p>
+    </aside>
+
+    <nav class="taskbar" aria-label="Barra de tareas">
+      <button class="start-button" id="startButton">☽ Inicio</button>
+      <button class="notification-button" id="notificationButton">♢ Alertas</button>
+      <button class="notification-button" id="lockButton">▣ Bloquear</button>
+      <button class="task-window-button" data-task-window="filesWindow">Archivos</button>
+      <button class="task-window-button" data-task-window="terminalWindow">Terminal</button>
+      <button class="task-window-button" data-task-window="settingsWindow">Ajustes</button>
+      <button class="task-window-button" data-task-window="musicWindow">Ambiente</button>
+      <span class="date-time"><span class="clock" id="clock"></span><span class="date" id="date"></span></span>
+    </nav>
+
+    <section class="window" id="filesWindow">
+      <header class="window-header">
+        <span>Archivos prohibidos</span>
+        <div class="window-controls">
+          <button class="minimize-button" aria-label="Minimizar">−</button>
+          <button class="maximize-button" aria-label="Maximizar">□</button>
+          <button class="close-button" aria-label="Cerrar">×</button>
+        </div>
+      </header>
+      <div class="window-body">
+        <p>◇ manuscrito_del_umbral.txt</p>
+        <p>◇ recuerdos_perdidos.log</p>
+        <p>◇ imagen_desconocida.jpg</p>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMJ-X-0x0MiL7n9EBCAsOnq23nx4fZX25BGkFPOoFypIQhRBB_wUmYb2-P&s=10" alt="Imagen misteriosa del sistema">
+      </div>
+    </section>
+
+    <section class="window" id="terminalWindow">
+      <header class="window-header">
+        <span>Terminal de las sombras</span>
+        <div class="window-controls">
+          <button class="minimize-button" aria-label="Minimizar">−</button>
+          <button class="maximize-button" aria-label="Maximizar">□</button>
+          <button class="close-button" aria-label="Cerrar">×</button>
+        </div>
+      </header>
+      <div class="window-body">
+        <div class="terminal-output" id="terminalOutput">Sistema conectado.
+La oscuridad observa. Escribe "help" para continuar.</div>
+        <input class="terminal-input" id="terminalInput" type="text" placeholder="Escribe un comando..." aria-label="Comando de terminal">
+      </div>
+    </section>
+
+    <section class="window" id="settingsWindow">
+      <header class="window-header">
+        <span>Configuración del Umbral</span>
+        <div class="window-controls">
+          <button class="minimize-button" aria-label="Minimizar">−</button>
+          <button class="maximize-button" aria-label="Maximizar">□</button>
+          <button class="close-button" aria-label="Cerrar">×</button>
+        </div>
+      </header>
+      <div class="window-body">
+        <p>Estado: <strong>despierto</strong></p>
+        <p>Modo: <strong>misterioso</strong></p>
+        <p>Advertencia: algunas puertas solo se abren una vez.</p>
+      </div>
+    </section>
+
+    <section class="window" id="musicWindow">
+      <header class="window-header">
+        <span>Ritual sonoro</span>
+        <div class="window-controls">
+          <button class="minimize-button" aria-label="Minimizar">−</button>
+          <button class="maximize-button" aria-label="Maximizar">□</button>
+          <button class="close-button" aria-label="Cerrar">×</button>
+        </div>
+      </header>
+      <div class="window-body">
+        <p>Una frecuencia para acompañar tu descenso al Umbral.</p>
+        <button class="music-control" id="musicButton">▶ Iniciar ambiente</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const loginScreen = document.getElementById("loginScreen");
+    const desktop = document.getElementById("desktop");
+    const startButton = document.getElementById("startButton");
+    const startMenu = document.getElementById("startMenu");
+    const notificationButton = document.getElementById("notificationButton");
+    const notificationPanel = document.getElementById("notificationPanel");
+    const lockButton = document.getElementById("lockButton");
+    const lockScreen = document.getElementById("lockScreen");
+    const passwordInput = document.getElementById("passwordInput");
+    const lockError = document.getElementById("lockError");
+    const clock = document.getElementById("clock");
+    const date = document.getElementById("date");
+    const terminalInput = document.getElementById("terminalInput");
+    const terminalOutput = document.getElementById("terminalOutput");
+    const windows = document.querySelectorAll(".window");
+    const musicButton = document.getElementById("musicButton");
+    let audioContext;
+    let ambientNodes;
+
+    document.getElementById("enterButton").addEventListener("click", () => {
+      loginScreen.style.display = "none";
+      desktop.classList.add("visible");
+      updateClock();
+    });
+
+    startButton.addEventListener("click", () => {
+      startMenu.classList.toggle("open");
+      notificationPanel.classList.remove("open");
+    });
+
+    notificationButton.addEventListener("click", () => {
+      notificationPanel.classList.toggle("open");
+      startMenu.classList.remove("open");
+    });
+
+    lockButton.addEventListener("click", () => {
+      lockScreen.classList.add("open");
+      passwordInput.value = "";
+      lockError.textContent = "";
+      passwordInput.focus();
+    });
+
+    function unlockSystem() {
+      if (passwordInput.value.toLowerCase() === "shadow") {
+        lockScreen.classList.remove("open");
+        lockError.textContent = "";
+        return;
+      }
+
+      lockError.textContent = "La clave no abre esta puerta.";
+      passwordInput.select();
+    }
+
+    document.getElementById("unlockButton").addEventListener("click", unlockSystem);
+    passwordInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") unlockSystem();
+    });
+
+    document.querySelectorAll("[data-window]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const windowElement = document.getElementById(button.dataset.window);
+        windowElement.classList.add("open");
+        windowElement.classList.remove("minimized");
+        updateTaskWindowButtons();
+        startMenu.classList.remove("open");
+        notificationPanel.classList.remove("open");
+        if (windowElement === document.getElementById("terminalWindow")) {
+          terminalInput.focus();
+        }
+      });
+    });
+
+    document.querySelectorAll(".close-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const windowElement = button.closest(".window");
+        windowElement.classList.remove("open", "maximized");
+        updateTaskWindowButtons();
+      });
+    });
+
+    document.querySelectorAll(".minimize-button").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        button.closest(".window").classList.add("minimized");
+        updateTaskWindowButtons();
+      });
+    });
+
+    document.querySelectorAll(".maximize-button").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const windowElement = button.closest(".window");
+        windowElement.classList.toggle("maximized");
+        button.textContent = windowElement.classList.contains("maximized") ? "❐" : "□";
+      });
+    });
+
+    document.querySelectorAll("[data-task-window]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const windowElement = document.getElementById(button.dataset.taskWindow);
+        windowElement.classList.add("open");
+        windowElement.classList.remove("minimized");
+        updateTaskWindowButtons();
+      });
+    });
+
+    document.getElementById("logoutButton").addEventListener("click", () => {
+      windows.forEach((windowElement) => windowElement.classList.remove("open", "maximized"));
+      startMenu.classList.remove("open");
+      notificationPanel.classList.remove("open");
+      desktop.classList.remove("visible");
+      loginScreen.style.display = "grid";
+      updateTaskWindowButtons();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!startMenu.contains(event.target) && event.target !== startButton) {
+        startMenu.classList.remove("open");
+      }
+      if (!notificationPanel.contains(event.target) && event.target !== notificationButton) {
+        notificationPanel.classList.remove("open");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (lockScreen.classList.contains("open")) return;
+        startMenu.classList.remove("open");
+        notificationPanel.classList.remove("open");
+        document.querySelectorAll(".window.open").forEach((windowElement) => {
+          windowElement.classList.remove("open");
+        });
+        updateTaskWindowButtons();
+      }
+    });
+
+    windows.forEach((windowElement) => {
+      const header = windowElement.querySelector(".window-header");
+      let dragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      header.addEventListener("pointerdown", (event) => {
+        dragging = true;
+        const bounds = windowElement.getBoundingClientRect();
+        offsetX = event.clientX - bounds.left;
+        offsetY = event.clientY - bounds.top;
+        windowElement.style.left = `${bounds.left}px`;
+        windowElement.style.top = `${bounds.top}px`;
+        windowElement.style.transform = "none";
+        header.setPointerCapture(event.pointerId);
+      });
+
+      header.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+        windowElement.style.left = `${Math.max(8, event.clientX - offsetX)}px`;
+        windowElement.style.top = `${Math.max(8, event.clientY - offsetY)}px`;
+      });
+
+      header.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+    });
+
+    function updateClock() {
+      clock.textContent = new Date().toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      date.textContent = new Date().toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+      });
+    }
+
+    function updateTaskWindowButtons() {
+      document.querySelectorAll("[data-task-window]").forEach((button) => {
+        const windowElement = document.getElementById(button.dataset.taskWindow);
+        button.classList.toggle("visible", windowElement.classList.contains("open"));
+      });
+    }
+
+    setInterval(updateClock, 1000);
+
+    terminalInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+
+      const command = terminalInput.value.trim().toLowerCase();
+      const responses = {
+        help: "Comandos: help, whoami, reveal, clear",
+        whoami: "Eres quien cruzó el umbral.",
+        reveal: "No todo lo que duerme quiere ser encontrado.",
+        clear: "",
+      };
+      terminalOutput.textContent = responses[command] || "El sistema no reconoce ese susurro.";
+      terminalInput.value = "";
+    });
+
+    musicButton.addEventListener("click", () => {
+      if (!audioContext) {
+        audioContext = new AudioContext();
+        const firstOscillator = audioContext.createOscillator();
+        const secondOscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        firstOscillator.frequency.value = 110;
+        secondOscillator.frequency.value = 164.81;
+        gain.gain.value = 0.035;
+        firstOscillator.connect(gain);
+        secondOscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        firstOscillator.start();
+        secondOscillator.start();
+        ambientNodes = { firstOscillator, secondOscillator, gain };
+        musicButton.textContent = "■ Detener ambiente";
+        musicButton.classList.add("playing");
+        return;
+      }
+
+      ambientNodes.firstOscillator.stop();
+      ambientNodes.secondOscillator.stop();
+      ambientNodes.gain.disconnect();
+      audioContext.close();
+      audioContext = null;
+      ambientNodes = null;
+      musicButton.textContent = "▶ Iniciar ambiente";
+      musicButton.classList.remove("playing");
+    });
+  </script>
+</body>
+</html>
